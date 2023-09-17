@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <title>Bootstrap Example</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+   </head>
+   <body>
+
+
+
+
+       
+
+
+
+      <div class="container">
+        
+
+         <h2>Employee List</h2>
+        
+           <!-- Trigger the modal with a button -->
+           <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Add Employee</button>
+           <br><br>
+         <table class="table table-bordered">
+            <thead>
+               <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Email</th>
+                  <th>Update Record</th>
+                  <th>Delete Record</th>
+               </tr>
+            </thead>
+            <tbody id="employee_data">
+            </tbody>
+         </table>
+      </div>
+      <div class="container">
+         <!-- Modal -->
+         <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+               <!-- Modal content-->
+               <div class="modal-content">
+                  <div class="modal-header">
+                     <button type="button" class="close" data-dismiss="modal">&times;</button>
+                     <h4 class="modal-title">Modal Header</h4>
+                  </div>
+                  <div class="modal-body">
+                     <form method="post" id="myform">
+                        <div class="form-group">
+                           <label for="first_name">First Name</label>
+                           <input type="text" class="form-control" id="first_name">
+                        </div>
+                        <div class="form-group">
+                           <label for="last_name">Last Name</label>
+                           <input type="text" class="form-control" id="last_name">
+                        </div>
+                        <div class="form-group">
+                           <label for="email">Email</label>
+                           <input type="email" class="form-control" id="email">
+                           <input type="hidden" class="form-control" id="id">
+                        </div>
+                        <button type="button" id="submit_form" class="btn btn-primary">Signup</button>
+                     </form>
+                  </div>
+                  <div class="modal-footer">
+                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <script>
+         function loadData(){
+         
+        
+            $.ajax({
+                          type: "GET",
+                          contentType: "application/json",
+                          dataType: 'json',
+                          // url: "http://127.0.0.1:8080/create",
+                          url: "http://localhost:8080/get",
+                          data: {}, // serializes the form's elements.
+                          success: function(data){
+                            console.log("data is");
+                            var tr = '';
+                            for(i=0;i<data.length;i++){
+
+                              tr += '<tr>';
+                              tr += '<td>' + data[i].first_name + '</td>';
+                              tr += '<td>' + data[i].last_name + '</td>';
+                              tr += '<td>' + data[i].email + '</td>';
+                              tr += '<td "><button data-update-id="'+data[i].id+'" class="btn btn-info updateBtn">Update</button></td>';
+                              tr += '<td "><button data-delete-id="'+data[i].id+'" class="btn btn-danger delBtn">Delete</button></td>';
+                              tr += '</tr>';
+
+                              
+                           //   $("#data_result").append(`<tr><td>${data[i].first_name}</td><td>${data[i].last_name}</td> <td>${data[i].email}</td><td><button data-delete-id='${data[i].id}' class='btn btn-danger btn-sm delBtn'>Delete</button></td></tr>`);
+         
+                            }
+
+                            $('#employee_data').html(tr);
+                         
+                              console.log(data); // show response from the php script.
+                          }
+                  });
+          }
+         
+          $(document).ready(function(){
+         
+         
+            $("#data_result").empty();
+           
+            loadData();
+         
+            //update Starts
+
+            $("body").on("click",".updateBtn",function(){
+
+               let atr = $(this).attr("data-update-id");
+               
+
+
+               $.ajax({
+                          type: "POST",
+                          contentType: "application/json",
+                          //dataType: 'json',
+                          // url: "http://127.0.0.1:8080/create",
+                          url: "http://localhost:8080/get_by_id",
+                          data: JSON.stringify({id:atr}), // serializes the form's elements.
+                          success: function(data){
+                             
+                           console.log(data);
+                           $("#submit_form").html("Update");
+                           $('#myModal').modal('show');
+                           
+
+                           $("#first_name").val(data.first_name);
+                           $("#last_name").val(data.last_name);
+                           $("#email").val(data.email);
+                           $("#id").val(data.id);
+
+
+
+                          
+
+                            loadData();
+                           // location.reload();
+         
+                          }
+                  });
+
+            });
+
+            //update ends
+           
+            $("body").on("click",".delBtn",function(){
+               
+               
+              let atr =   $(this).attr("data-delete-id");
+           
+              $.ajax({
+                          type: "POST",
+                          contentType: "application/json",
+                          //dataType: 'json',
+                          // url: "http://127.0.0.1:8080/create",
+                          url: "http://localhost:8080/delete",
+                          data: JSON.stringify({id:atr}), // serializes the form's elements.
+                          success: function(data){
+                            $('#myModal').modal('hide');
+                            $('#myform')[0].reset();
+
+                            loadData();
+                           // location.reload();
+         
+                          }
+                  });
+
+            });
+         
+              $("#submit_form").click(function(){
+
+               $("#submit_form").html("Signup");
+         
+                  let first_name = $("#first_name").val();
+                  let last_name = $("#last_name").val();
+                  let email = $("#email").val();
+
+                  let id = $("#id").val();
+
+                  
+
+                  if (id == '' || id=='' || id==null){
+                     
+                     var url = "http://localhost:8080/create";
+                     id = null;
+                  }else{
+                    
+                     url = "http://localhost:8080/update";
+                     
+                   
+                  }
+
+            
+      
+         
+                  $.ajax({
+                          type: "POST",
+                          contentType: "application/json",
+                          //dataType: 'json',
+                          // url: "http://127.0.0.1:8080/create",
+                          url: url,
+                          data: JSON.stringify({firstName:first_name,lastName:last_name,email:email,id:id}), // serializes the form's elements.
+                          success: function(data){
+                           $("#submit_form").html("Signup");
+                            $('#myModal').modal('hide');
+                            $('#myform')[0].reset();
+
+                            loadData();
+                           // location.reload();
+         
+                          }
+                  });
+                  
+              });
+              
+          });
+      </script>
+   </body>
+</html>
